@@ -1,0 +1,38 @@
+from datetime import datetime
+import json
+import numpy as np
+import pandas as pd
+import os
+import streamlit as st
+#import local_lib as ll
+
+
+############
+## FRONT  ##
+############
+
+st.header('B3 Report - Personal Investment Dashboard 🤑')
+st.write('soon...')
+
+############
+## IMPORT ##
+############
+
+#if 'import_sta' not in st.session_state:
+#    st.session_state['import_state'] = 'empty'
+    #st.session_state['data'] = None
+
+st.write(st.session_state)
+
+def change_import_state():
+    st.session_state['import_state'] = 'processing'
+    st.success('Carregamento concluído.')
+    
+uploaded_files = st.file_uploader("Choose a file",
+                                  accept_multiple_files=True,
+                                  on_change=change_import_state)
+#st.session_state['import_state'] = 'teste'                                  
+st.write(st.session_state)
+
+# Funções de ETL:
+
