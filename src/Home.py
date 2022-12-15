@@ -105,6 +105,8 @@ def etl(uploaded_files):
     #df_all['data_ult_dia_mes'] = [i.replace(day=1) for i in df_all['data']]
     #df_all['data_ult_dia_mes'] = df['date'] + pd.tseries.offsets.MonthEnd(0)
     
+    #### INCLUIR UM GROUPBY QUE SOME AS QUANTIDADES E CALCULE UM PREÇO MÉDIO
+    st.write('PRECISA ARRUMAR AQUIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
     return df_all
 
 

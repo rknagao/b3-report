@@ -3,6 +3,8 @@ import numpy as np
 import pandas as pd
 import os
 import streamlit as st
+import yfinance as yf
+
 
 def etl_historic_price_tesouro(df_right):
     # To download historic prices of Tesouro Direto (i.e. brazillian T-Bonds). 
@@ -31,6 +33,7 @@ def etl_historic_price_tesouro(df_right):
 
     return df_merge
     
+
 
 def create_column_last_day(df_orig, col_index, col_date):
     # Criando nova coluna identificando o último dia do mês para cada ticker.
@@ -75,6 +78,38 @@ def custom_pivot_table(df, col_value):
     data_cols=tab.columns[1:].tolist()
 
     return tab, data_cols
+
+
+def load_benchmark():
+    # CDI
+    df_cdi = pd.read_json('http://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados?formato=json')
+    df_cdi['data'] = pd.to_datetime(df_cdi['data'], format='%d/%m/%Y')
+    df_cdi.columns = ['data','cdi']
+
+    # IPCA
+    df_ipca = pd.read_json('http://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados?formato=json')
+    df_ipca['data'] = pd.to_datetime(df_ipca['data'], format='%d/%m/%Y')
+    df_ipca.columns = ['data','ipca']
+    df_ipca['ipca'] = round((1 + df_ipca['ipca']) ** (1/22) - 1, 6)
+
+    # IBOV
+    df_ibov = yf.download('^BVSP', interval='1d')['Adj Close'].reset_index(drop=False)
+    df_ibov.columns = ['data','ibov']
+    df_ibov['ibov'] = ((df_ibov['ibov'] / df_ibov['ibov'].shift(1) - 1) * 100).fillna(0).round(6)
+        
+    # S&P500
+    df_sp500 = yf.download('^GSPC', interval='1d')['Adj Close'].reset_index(drop=False)
+    df_sp500.columns = ['data','sp500']
+    df_sp500['sp500'] = ((df_sp500['sp500'] / df_sp500['sp500'].shift(1) - 1) * 100).fillna(5).round(6)
+
+    df_final = pd.merge(df_ibov, df_sp500, on='data', how='inner')
+    df_final = pd.merge(df_final, df_cdi, on='data', how='inner')
+    df_final = pd.merge(df_final, df_ipca, on='data', how='left')
+    df_final['ipca'] = df_final['ipca'].fillna(method='ffill')
+    #df_final['data'] = pd.to_datetime(df_final['data'])#.dt.date
+
+    return df_final
+
 
 """
 class investimento:

@@ -6,6 +6,7 @@ import pandas as pd
 import os
 import streamlit as st
 import local_lib as lib
+import yfinance as yf
 
 ##########################
 ## CONFIGURAÇÕES GERAIS ##
@@ -14,15 +15,10 @@ import local_lib as lib
 st.header('🐢 Tesouro Direto')
 
 if ('import_state' not in st.session_state) or (st.session_state['import_state'] != 'ready'):
-    #st.write(st.session_state)
     st.warning('Insira dados na aba de importação.')
 
 else:    
     DF = st.session_state['tesouro']
-    #LIST_TICKER = DF['ticker'].unique().tolist()
-    #DF_TESOURO = df.loc[df['tp_ativo'] == 'Tipo 1: tesouro']
-    #st.dataframe(DF_TESOURO)
-    #st.markdown('------')
 
     st.markdown('''
     #### Tabela 1: Evolução mensal
@@ -30,11 +26,7 @@ else:
     ''')
 
     df = lib.etl_historic_price_tesouro(DF)
-    #st.dataframe(df)
-    #df.to_csv('data.csv', index=False)
-    #st.write(type(df.iloc[0,0]))
     df = lib.create_column_last_day(df, col_index='ticker', col_date='data')
-    #st.dataframe(df)
     
     list_ticker = st.multiselect('Escolha o(s) investimento(s):',
                                 DF['ticker'].unique().tolist(),
@@ -49,46 +41,10 @@ else:
 
     st.markdown('----- PAREI AQUI ------------')
 
-    @st.cache(suppress_st_warning=True)
-    def extract_tesouro(list_ticker):
-        #Objetivo: criar um dataframe dos preços históricos do Tesouro Direto.
+    #df.to_csv('data.csv', index=False)
 
-        dt_min = DF_TESOURO['data'].min()
-        
-        # Extrair
-        url = 'https://www.tesourotransparente.gov.br/ckan/dataset/df56aa42-484a-4a59-8184-7676580c81e3/resource/796d2059-14e9-44e3-80c9-2d9e30b405c1/download/PrecoTaxaTesouroDireto.csv'
-        df_api = pd.read_csv(url, sep=';', decimal=',')
-
-        # Transformar
-        df_api['data'] = pd.to_datetime(df_api['Data Base'], dayfirst=True).dt.date
-        df_api['ticker'] = df_api['Tipo Titulo'].astype(str) + ' ' + df_api['Data Vencimento'].str[6:]
-        df_api = df_api.loc[(df_api['ticker'].isin(list_ticker)) & (df_api['data'] >= dt_min)]
-        df_api.rename(columns={'PU Base Manha':'preco'}, inplace=True)
-        df_api['preco'] = round(df_api['preco'].astype(float), 2)
-        df_api = df_api[['data', 'ticker', 'preco']].sort_values(by=['ticker','data'], ascending=True)
-        
-        return df_api
-
-
-    def transformation_tesouro(df_api):
-        # Juntar com relatórios da B3
-        df = pd.merge(df_api[['data', 'ticker', 'preco']],
-                      DF_TESOURO[['data', 'ticker', 'qtd']],
-                      on=['data','ticker'],
-                      how='left').fillna(0)
-
-        
-        # Calculando a quantidade acumulada de cada ticker
-        for i in DF_TESOURO['ticker'].unique():
-            df.loc[df['ticker'] == i, 'qtd_acum'] = df.loc[df['ticker'] == i, 'qtd'].cumsum(skipna=True)
-            
-        df = df.loc[df['qtd_acum'] != 0]
-        df['vl_atualizado'] = (df['qtd_acum'] * df['preco']).round(2)
-
-        # Agregando tudo
-
-        return df
-
+    df_benchmark = lib.load_benchmark()
+    st.dataframe(df_benchmark)
 
     def plot2(df):
         '''
