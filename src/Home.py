@@ -11,7 +11,7 @@ import streamlit as st
 ## FRONT  ##
 ############
 
-st.header('B3 Report - Personal Investment 🤑')
+st.header('B3 Report - Personal Investment')
 
 ############
 ## IMPORT ##
@@ -101,18 +101,18 @@ def etl(uploaded_files):
     # (e) Nova variável: variação na quantidade no valor total.
     df_all['vl_total'] = df_all['vl_total_abs'] * np.where(df_all['credito_ou_debito'] == 'Credito', 1, -1)
 
-    # (f) Nova variável: data de competência.
-    #df_all['data_ult_dia_mes'] = [i.replace(day=1) for i in df_all['data']]
-    #df_all['data_ult_dia_mes'] = df['date'] + pd.tseries.offsets.MonthEnd(0)
-    
-    #### INCLUIR UM GROUPBY QUE SOME AS QUANTIDADES E CALCULE UM PREÇO MÉDIO
-    st.write('PRECISA ARRUMAR AQUIIIIIIIIIIIIIIIIIIIIIIIIIIIII')
+    # (f) Unificar múltiplas compras/vendas em diferentes corretoras.
+    # Essa etapa necessariamente é a última, pois aplicaremos cálculo sobre quantidade e preço.
+    # Ao final, teremos o preço médio de compras/venda 
+    # tp_movimento foi removido pois podem haver compras e vendas o mesmo dia (caso de daytrade)
+    df_all = df_all.groupby(['tp_ativo','ticker','data']).agg({'qt':'sum', 'vl_total':'sum'}).reset_index(drop=False)
+    df_all['preco'] = np.where(df_all['qt'] != 0, round(df_all['vl_total'] / df_all['qt'], 2), 0)
     return df_all
 
 
 def only_tesouro(df):
     df = df.loc[df['tp_ativo'] == 'Tipo 1: tesouro'].sort_values(by=['ticker','data'], ascending=True)
-    return df[['data','tp_movimento','ticker', 'qt', 'vl_total']]
+    return df[['data', 'ticker', 'qt', 'vl_total']]
 
 
 if st.session_state['import_state'] == 'processing':

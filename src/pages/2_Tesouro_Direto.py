@@ -39,12 +39,14 @@ else:
     st.dataframe(tab1.style.format(subset=data_col, formatter="{:.2f}"))
 
 
-    st.markdown('----- PAREI AQUI ------------')
-
-    #df.to_csv('data.csv', index=False)
+    
+    df.to_csv('data.csv', index=False)
 
     df_benchmark = lib.load_benchmark()
     st.dataframe(df_benchmark)
+
+    st.markdown('15/12: ---PAREI AQUI--- próxima etapa é juntar dataframe de dados + benchmark para simular os valores em potencial caso 100% do dinheiro fosse aplicado em cada bench.')
+
 
     def plot2(df):
         '''
