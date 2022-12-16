@@ -56,14 +56,14 @@ def etl(uploaded_files):
                   'ativo': str,
                   'instituicao': str,
                   'qt_abs': float,
-                  'preco': float,
+                  'preco_mov': float,
                   'vl_total_abs': float}
 
     df_all.columns = list(dict_dtype.keys())
-    df_all['preco'].replace('-', 0, inplace=True)
+    df_all['preco_mov'].replace('-', 0, inplace=True)
     df_all['vl_total_abs'].replace('-', 0, inplace=True)
     df_all = df_all.astype(dict_dtype)
-    df_all['data'] = pd.to_datetime(df_all['data'], format='%d/%m/%Y').dt.date
+    df_all['data'] = pd.to_datetime(df_all['data'], format='%d/%m/%Y')
     
     # (b) Nova variável: classificação do ativo.
     df_all['tp_ativo'] = np.select(
@@ -106,13 +106,13 @@ def etl(uploaded_files):
     # Ao final, teremos o preço médio de compras/venda 
     # tp_movimento foi removido pois podem haver compras e vendas o mesmo dia (caso de daytrade)
     df_all = df_all.groupby(['tp_ativo','ticker','data']).agg({'qt':'sum', 'vl_total':'sum'}).reset_index(drop=False)
-    df_all['preco'] = np.where(df_all['qt'] != 0, round(df_all['vl_total'] / df_all['qt'], 2), 0)
+    df_all['preco_mov'] = np.where(df_all['qt'] != 0, round(df_all['vl_total'] / df_all['qt'], 2), 0)
     return df_all
 
 
 def only_tesouro(df):
     df = df.loc[df['tp_ativo'] == 'Tipo 1: tesouro'].sort_values(by=['ticker','data'], ascending=True)
-    return df[['data', 'ticker', 'qt', 'vl_total']]
+    return df[['data', 'ticker', 'qt', 'preco_mov', 'vl_total']]
 
 
 if st.session_state['import_state'] == 'processing':
@@ -120,4 +120,6 @@ if st.session_state['import_state'] == 'processing':
     st.session_state['tesouro'] = only_tesouro(df_all)
     st.session_state['import_state'] = 'ready'
     
+    # Manutenção
+    only_tesouro(df_all).to_csv('tesouro_pos_importacao.csv', index=False)
 
