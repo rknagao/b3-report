@@ -50,7 +50,7 @@ def etl(uploaded_files):
     '''
     # Extração.
     for i in uploaded_files:
-        df = pd.read_excel(i, engine='openpyxl')
+        df = pd.read_excel(i)
 
         # No primeiro caso criaremos um dataframe que consolidará todas as movimentações.
         if i == uploaded_files[0]:
