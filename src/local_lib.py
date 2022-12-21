@@ -1,3 +1,4 @@
+import altair as alt
 import json
 import numpy as np
 import pandas as pd
@@ -5,7 +6,7 @@ import os
 import streamlit as st
 import yfinance as yf
 
-#@st.cache
+@st.cache
 def etl_tesouro_historic_price():
     url = 'https://www.tesourotransparente.gov.br/ckan/dataset/df56aa42-484a-4a59-8184-7676580c81e3/resource/796d2059-14e9-44e3-80c9-2d9e30b405c1/download/PrecoTaxaTesouroDireto.csv'
     df = pd.read_csv(url, sep=';', decimal=',')
@@ -84,7 +85,7 @@ def custom_pivot_table(df, col_value):
     return tab, data_cols
 
 
-#@st.cache    
+@st.cache    
 def etl_benchmark_historic_price():
     # CDI
     df_cdi = pd.read_json('http://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados?formato=json')
@@ -128,7 +129,6 @@ def merge_historic_benchmark(df_filtered, df_bench):
 
 
 def calculate_cumsum(array_value, array_yield):
-    
     assert len(array_value) == len(array_yield)
 
     list_new_value = []
@@ -153,12 +153,61 @@ def custom_data_lineplot(df, list_bench):
     df_plot = pd.melt(df,
                       id_vars='data',
                       value_vars=['vl_atualizado'] + [f'vl_cumsum_{i}' for i in list_bench],
-                       )#.reset_index(drop=False)
+                       )
     df_plot['data'] = pd.to_datetime(df_plot['data']).dt.date
-    df_plot['data_lag'] = df_plot['data'].shift(-1)
+    df_plot['variable'].replace({'vl_atualizado': 'Carteira',
+                                'vl_cumsum_cdi': 'CDI',
+                                'vl_cumsum_ibov': 'Ibovespa',
+                                'vl_cumsum_ipca': 'IPCA',
+                                'vl_cumsum_sp500': 'S&P 500'}, inplace=True)
 
     return df_plot
 
+
+def lineplot_altair(data: pd.DataFrame, title: str, col_date: str, col_value: str, col_label: str ):
+    alt.themes.enable("streamlit")
+    data['data_lag'] = data[col_date].shift(-1)
+
+    hover = alt.selection_single(
+        fields=[col_date],
+        nearest=True,
+        on="mouseover",
+        empty="none",
+    )
+
+    lines = (
+        alt.Chart(data, height=500)
+        .mark_line()
+        .encode(
+            x=alt.X(col_date, title="Data"),
+            y=alt.Y(col_value, title="Valor total (R$)"),
+            color=alt.Color(col_label, title='Legenda')
+        )
+    )
+
+    # Draw points on the line, and highlight based on selection
+    points = lines.transform_filter(hover).mark_circle(size=90)
+
+    # Draw a rule at the location of the selection
+    tooltips = (
+        alt.Chart(data)
+        .mark_rule()
+        .encode(
+            x=f"yearmonthdate({col_date})",
+            y=col_value,
+            opacity=alt.condition(hover, alt.value(0.3), alt.value(0)),
+            tooltip=[
+                alt.Tooltip("yearmonthdate(data_lag)", title="Data"),
+                alt.Tooltip(col_label, title="Legenda"),
+                alt.Tooltip(col_value, title="Valor (R$)"),
+            ],
+        )
+        .add_selection(hover)
+    )
+
+    chart = (lines + points + tooltips).interactive()
+    plot = st.altair_chart(chart.interactive(), use_container_width=True)
+    return plot
 
 
 """

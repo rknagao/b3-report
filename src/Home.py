@@ -2,6 +2,7 @@ from datetime import datetime
 import json
 import numpy as np
 import pandas as pd
+from PIL import Image
 import os
 import streamlit as st
 #import local_lib as ll
@@ -13,22 +14,31 @@ import streamlit as st
 
 st.header('B3 Report - Personal Investment')
 
-############
-## IMPORT ##
-############
-
 if 'import_state' not in st.session_state:
     st.session_state['import_state'] = 'empty'
-    
 
 def change_import_state():
     st.session_state['import_state'] = 'processing'
     st.success('Carregamento concluído.')
     
-uploaded_files = st.file_uploader("Choose a file",
+uploaded_files = st.file_uploader("Carregue o(s) relatório(s)",
                                   accept_multiple_files=True,
                                   on_change=change_import_state)
 
+st.markdown("#### Como extrair os relatórios da B3?")
+st.markdown("Acesse o [site](https://www.investidor.b3.com.br/) da B3 e faça o login na área de investidor.")
+
+st.image(Image.open('src/fig/pag1.PNG'), caption='Passo 1: após o login, acesse o Menu no lado esquerdo superior.', width=800)
+st.write('')
+st.image(Image.open('src/fig/pag2.PNG'), caption='Passo 2: acesse os Extratos.', width=800)
+st.write('')
+st.image(Image.open('src/fig/pag3.PNG'), caption='Passo 3: clique em Movimentação e depois no botão amarelo Filtrar .', width=800)
+st.write('')
+st.image(Image.open('src/fig/pag4.PNG'), caption='Passo 4: selecione o filtro desejado (dica: use o ano civil, ou seja, 01/jan até 31/dez).', width=800)
+st.write('')
+st.image(Image.open('src/fig/pag5.PNG'), caption='Passo 5: clique em Extrair no formato excel.', width=800)
+st.write('')
+st.image(Image.open('src/fig/pag6.PNG'), caption='Certifique-se que os arquivos tenham o formato acima.', width=800)
 
 def etl(uploaded_files):
     '''
@@ -119,7 +129,3 @@ if st.session_state['import_state'] == 'processing':
     df_all = etl(uploaded_files)
     st.session_state['tesouro'] = only_tesouro(df_all)
     st.session_state['import_state'] = 'ready'
-    
-    # Manutenção
-    only_tesouro(df_all).to_csv('tesouro_pos_importacao.csv', index=False)
-

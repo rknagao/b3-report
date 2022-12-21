@@ -1,3 +1,0 @@
-import streamlit as st
-
-st.write(f'B3: https://www.b3.com.br/pt_br/')
