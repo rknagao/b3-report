@@ -1,3 +1,4 @@
 # b3-report
 
-B3 investment report in streamlit.
+B3 (Brasil, Bolsa e Balcão) personal investment report in streamlit:
+https://b3-report.streamlit.app/
