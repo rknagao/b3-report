@@ -58,7 +58,7 @@ def etl(uploaded_files):
         if i == uploaded_files[0]:
             df_all = df
         else:
-            df_all = pd.concat([df_all, df], axis=0, ignore_index=True)
+            df_all = pd.concat([df_all, df], axis=0, ignore_index=True).drop_duplicates(keep='last')
 
     # Tratamentos:
     # (a) Nome e dtype.
