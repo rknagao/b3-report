@@ -30,7 +30,9 @@ def merge_historic_tesouro(df_historic, df_tesouro):
     # Cálculo do valor acumulado para cada ticker.
     for i in list_ticker:
         df_tesouro_hist.loc[df_tesouro_hist['ticker'] == i, 'qt_acum'] = df_tesouro_hist.loc[df_tesouro_hist['ticker'] == i, 'qt'].cumsum(skipna=True)
-        df_tesouro_hist = df_tesouro_hist.loc[df_tesouro_hist['qt_acum'] != 0]
+        
+        # Condição: excluir datas sem movimentação ou que não havia tesouro na carteira.
+        df_tesouro_hist = df_tesouro_hist.loc[(df_tesouro_hist['qt'] != 0) | (df_tesouro_hist['qt_acum'] != 0)]
         df_tesouro_hist['vl_atualizado'] = (df_tesouro_hist['qt_acum'] * df_tesouro_hist['preco_hist']).round(2)
 
     return df_tesouro_hist

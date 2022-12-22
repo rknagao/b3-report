@@ -13,6 +13,7 @@ import streamlit as st
 ############
 
 st.header('B3 Report - Personal Investment')
+st.write('Bem vindo ao B3 Report, seu planejador pessoal de investimentos. Para começar, carregue seus dados de movimentação fornecidos pela B3 (caso não tenha certeza de onde extrair os dados, preparamos o passo-a-passo abaixo).')
 
 if 'import_state' not in st.session_state:
     st.session_state['import_state'] = 'empty'
@@ -20,12 +21,13 @@ if 'import_state' not in st.session_state:
 def change_import_state():
     st.session_state['import_state'] = 'processing'
     st.success('Carregamento concluído.')
-    
+
 uploaded_files = st.file_uploader("Carregue o(s) relatório(s)",
                                   accept_multiple_files=True,
                                   on_change=change_import_state)
 
-st.markdown("#### Como extrair os relatórios da B3?")
+st.markdown('---')
+st.markdown("#### Passo-a-passo para obter os relatórios da B3?")
 st.markdown("Acesse o [site](https://www.investidor.b3.com.br/) da B3 e faça o login na área de investidor.")
 
 st.image(Image.open('src/fig/pag1.PNG'), caption='Passo 1: após o login, acesse o Menu no lado esquerdo superior.', width=800)
@@ -129,3 +131,6 @@ if st.session_state['import_state'] == 'processing':
     df_all = etl(uploaded_files)
     st.session_state['tesouro'] = only_tesouro(df_all)
     st.session_state['import_state'] = 'ready'
+
+    # Manutenção
+    only_tesouro(df_all).to_csv('data/manutencao/dados_pos_home.csv', index=False)
