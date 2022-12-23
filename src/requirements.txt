@@ -1,8 +1,8 @@
 altair==4.2.0
+millify==0.1.1
 numpy==1.22.3
 pandas==1.4.2
 Pillow==9.3.0
 python_dateutil==2.8.2
-streamlit==1.13.0
+streamlit==1.16.0
 yfinance==0.1.70
-openpyxl==3.0.9
