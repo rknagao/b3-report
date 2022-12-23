@@ -1,4 +1,5 @@
-# b3-report
+# Pippinvest
 
-B3 (Brasil, Bolsa e Balcão) personal investment report in streamlit:
-https://b3-report.streamlit.app/
+A personal investment report of B3 (Brasil, Bolsa e Balcão) based in streamlit.
+
+Check the [beta](https://pippinvest.streamlit.app/)!
