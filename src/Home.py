@@ -12,8 +12,8 @@ import streamlit as st
 ## FRONT  ##
 ############
 
-st.header('B3 Report - Personal Investment')
-st.write('Bem vindo ao B3 Report, seu planejador pessoal de investimentos. Para começar, carregue seus dados de movimentação fornecidos pela B3 (caso não tenha certeza de onde extrair os dados, preparamos o passo-a-passo abaixo).')
+st.header('Pippinvest 💰🐾🐕')
+st.write('Bem vindo ao Pippinvest, seu planejador pessoal de investimentos. Para começar, carregue seus dados de movimentação fornecidos pela B3 (caso não tenha certeza de onde extrair os dados, preparamos o passo-a-passo abaixo).')
 
 if 'import_state' not in st.session_state:
     st.session_state['import_state'] = 'empty'
