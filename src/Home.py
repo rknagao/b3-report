@@ -27,20 +27,21 @@ uploaded_files = st.file_uploader("Carregue o(s) relatório(s)",
                                   on_change=change_import_state)
 
 st.markdown('---')
-st.markdown("#### Passo-a-passo para obter os relatórios da B3?")
-st.markdown("Acesse o [site](https://www.investidor.b3.com.br/) da B3 e faça o login na área de investidor.")
+with st.expander("Dica: clique aqui para saber como obter os relatórios da B3."):
+    st.markdown("##### Passo-a-passo")
+    st.markdown("Acesse o [site](https://www.investidor.b3.com.br/) da B3 e faça o login na área de investidor.")
 
-st.image(Image.open('src/fig/pag1.PNG'), caption='Passo 1: após o login, acesse o Menu no lado esquerdo superior.', width=800)
-st.write('')
-st.image(Image.open('src/fig/pag2.PNG'), caption='Passo 2: acesse os Extratos.', width=800)
-st.write('')
-st.image(Image.open('src/fig/pag3.PNG'), caption='Passo 3: clique em Movimentação e depois no botão amarelo Filtrar .', width=800)
-st.write('')
-st.image(Image.open('src/fig/pag4.PNG'), caption='Passo 4: selecione o filtro desejado (dica: use o ano civil, ou seja, 01/jan até 31/dez).', width=800)
-st.write('')
-st.image(Image.open('src/fig/pag5.PNG'), caption='Passo 5: clique em Extrair no formato excel.', width=800)
-st.write('')
-st.image(Image.open('src/fig/pag6.PNG'), caption='Certifique-se que os arquivos tenham o formato acima.', width=800)
+    st.image(Image.open('src/fig/pag1.PNG'), caption='Passo 1: após o login, acesse o Menu no lado esquerdo superior.')
+    st.write('')
+    st.image(Image.open('src/fig/pag2.PNG'), caption='Passo 2: acesse os Extratos.')
+    st.write('')
+    st.image(Image.open('src/fig/pag3.PNG'), caption='Passo 3: clique em Movimentação e depois no botão amarelo Filtrar .')
+    st.write('')
+    st.image(Image.open('src/fig/pag4.PNG'), caption='Passo 4: selecione o intervalo desejado (dica: o filtro aceita no máximo 12 meses. A sugestão é filtrar de 01/jan até 31/dez).')
+    st.write('')
+    st.image(Image.open('src/fig/pag5.PNG'), caption='Passo 5: clique em Extrair no formato excel.')
+    st.write('')
+    st.image(Image.open('src/fig/pag6.PNG'), caption='Certifique-se que os arquivos tenham o formato acima.')
 
 def etl(uploaded_files):
     '''
@@ -52,7 +53,7 @@ def etl(uploaded_files):
     '''
     # Extração.
     for i in uploaded_files:
-        df = pd.read_excel(i)
+        df = pd.read_excel(i, engine='openpyxl')
 
         # No primeiro caso criaremos um dataframe que consolidará todas as movimentações.
         if i == uploaded_files[0]:

@@ -77,13 +77,14 @@ def custom_pivot_table(df, col_value):
                          observed=True
                          ).astype(float)\
                          .fillna(0)\
-                         .round(2)
+                         .round(2)\
+                         .iloc[:, :-1]
      
     list_col = [i[1] for i in tab.columns]
-    tab.columns = list_col
+    tab.columns = [f"{i.strftime('%B')}/{i.year}" for i in list_col]
     tab.reset_index(drop=False, inplace=True)
     data_cols=tab.columns[1:].tolist()
-
+    
     return tab, data_cols
 
 
