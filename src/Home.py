@@ -127,11 +127,15 @@ def only_tesouro(df):
     df = df.loc[df['tp_ativo'] == 'Tipo 1: tesouro'].sort_values(by=['ticker','data'], ascending=True)
     return df[['data', 'ticker', 'qt', 'preco_mov', 'vl_total']]
 
+def only_bolsa(df):
+    df = df.loc[(df['tp_ativo'] == 'Tipo 2: ações') | (df['tp_ativo'] == 'Tipo 3: BDR')].sort_values(by=['ticker','data'], ascending=True)
+    return df[['data', 'ticker', 'qt', 'preco_mov', 'vl_total']]
 
 if st.session_state['import_state'] == 'processing':
     df_all = etl(uploaded_files)
     st.session_state['tesouro'] = only_tesouro(df_all)
+    st.session_state['bolsa'] = only_bolsa(df_all)
     st.session_state['import_state'] = 'ready'
 
     # Manutenção
-    only_tesouro(df_all).to_csv('data/manutencao/dados_pos_home.csv', index=False)
+    #only_tesouro(df_all).to_csv('data/manutencao/dados_pos_home.csv', index=False)

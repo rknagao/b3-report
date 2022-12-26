@@ -14,20 +14,27 @@ import yfinance as yf
 ## CONFIGURAÇÕES GERAIS ##
 ##########################
 
-st.header('Tesouro Direto 🐢')
+st.header('Bolsa de Valores 🐻🐮')
 
 if ('import_state' not in st.session_state) or (st.session_state['import_state'] != 'ready'):
     st.warning('Volte ao menu Home à esquerda para carregar os dados.')
 
 else:    
-    if st.session_state['tesouro'].shape[0] == 0:
+    if st.session_state['bolsa'].shape[0] == 0:
         st.warning('Os relatórios inseridos estão vazios.')
     
     else:
-        df_tesouro = st.session_state['tesouro']
-        df_tesouro['data'] = pd.to_datetime(df_tesouro['data'], format='%Y-%m-%d')
+        df_bolsa = st.session_state['bolsa']
+        df_bolsa['data'] = pd.to_datetime(df_bolsa['data'], format='%Y-%m-%d')
         
+        #remover
+        st.dataframe(df_bolsa)
 
+        df_bolsa_historico = lib.etl_bolsa_historic_price(list_ticker_b3=df_bolsa['ticker'].unique(),
+                                                          start_date=df_bolsa['data'].min(),
+                                                          end_date=df_bolsa['data'].max())
+        st.dataframe(df_bolsa_historico)
+        """
         ##########################
         # TAB1 - TABELA DINAMICA #
         ##########################
@@ -133,3 +140,4 @@ else:
 
         with col4:
             st.metric(label="Rendimento", value=f"{rendimento_nominal} %", delta=f"{rendimento_nominal_delta} %")
+        """

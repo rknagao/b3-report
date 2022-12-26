@@ -16,6 +16,53 @@ def etl_tesouro_historic_price():
     return df
 
 
+@st.cache    
+def etl_benchmark_historic_price():
+    # CDI
+    df_cdi = pd.read_json('http://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados?formato=json')
+    df_cdi['data'] = pd.to_datetime(df_cdi['data'], format='%d/%m/%Y')
+    df_cdi.columns = ['data','cdi']
+
+    # IPCA
+    df_ipca = pd.read_json('http://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados?formato=json')
+    df_ipca['data'] = pd.to_datetime(df_ipca['data'], format='%d/%m/%Y')
+    df_ipca.columns = ['data','ipca']
+    df_ipca['ipca'] = round((1 + df_ipca['ipca']) ** (1/22) - 1, 6)
+
+    # IBOV
+    df_ibov = yf.download('^BVSP', interval='1d')['Adj Close'].reset_index(drop=False)
+    df_ibov.columns = ['data','ibov']
+    df_ibov['ibov'] = ((df_ibov['ibov'] / df_ibov['ibov'].shift(1) - 1) * 100).fillna(0).round(6)
+        
+    # S&P500
+    df_sp500 = yf.download('^GSPC', interval='1d')['Adj Close'].reset_index(drop=False)
+    df_sp500.columns = ['data','sp500']
+    df_sp500['sp500'] = ((df_sp500['sp500'] / df_sp500['sp500'].shift(1) - 1) * 100).fillna(5).round(6)
+
+    df_final = pd.merge(df_ibov, df_sp500, on='data', how='inner')
+    df_final = pd.merge(df_final, df_cdi, on='data', how='inner')
+    df_final = pd.merge(df_final, df_ipca, on='data', how='left')
+    df_final['ipca'] = df_final['ipca'].fillna(method='ffill')
+    df_final['data'] = pd.to_datetime(df_final['data'])
+
+    return df_final
+
+
+@st.cache
+def etl_bolsa_historic_price(list_ticker_b3: list, start_date: str, end_date: str) -> np.array:
+
+    # Utilizando a api do yf
+    long_string = ' '.join([i + '.SA' for i in list_ticker_b3])
+    df_price = yf.download(long_string, start=start_date, end=end_date, group_by='column')['Adj Close'].reset_index()
+
+    # Ajustes na base
+    df_price.columns = ['data'] + list(list_ticker_b3)    
+    df_price['data'] = pd.to_datetime(df_price['data'])
+    df_price = df_price.fillna(0).round(2)
+    
+    return df_price
+
+
 def merge_historic_tesouro(df_historic, df_tesouro):
 
     # Merge entre preços históricos e investimentos do B3.
@@ -87,37 +134,6 @@ def custom_pivot_table(df, col_value):
     
     return tab, data_cols
 
-
-@st.cache    
-def etl_benchmark_historic_price():
-    # CDI
-    df_cdi = pd.read_json('http://api.bcb.gov.br/dados/serie/bcdata.sgs.12/dados?formato=json')
-    df_cdi['data'] = pd.to_datetime(df_cdi['data'], format='%d/%m/%Y')
-    df_cdi.columns = ['data','cdi']
-
-    # IPCA
-    df_ipca = pd.read_json('http://api.bcb.gov.br/dados/serie/bcdata.sgs.433/dados?formato=json')
-    df_ipca['data'] = pd.to_datetime(df_ipca['data'], format='%d/%m/%Y')
-    df_ipca.columns = ['data','ipca']
-    df_ipca['ipca'] = round((1 + df_ipca['ipca']) ** (1/22) - 1, 6)
-
-    # IBOV
-    df_ibov = yf.download('^BVSP', interval='1d')['Adj Close'].reset_index(drop=False)
-    df_ibov.columns = ['data','ibov']
-    df_ibov['ibov'] = ((df_ibov['ibov'] / df_ibov['ibov'].shift(1) - 1) * 100).fillna(0).round(6)
-        
-    # S&P500
-    df_sp500 = yf.download('^GSPC', interval='1d')['Adj Close'].reset_index(drop=False)
-    df_sp500.columns = ['data','sp500']
-    df_sp500['sp500'] = ((df_sp500['sp500'] / df_sp500['sp500'].shift(1) - 1) * 100).fillna(5).round(6)
-
-    df_final = pd.merge(df_ibov, df_sp500, on='data', how='inner')
-    df_final = pd.merge(df_final, df_cdi, on='data', how='inner')
-    df_final = pd.merge(df_final, df_ipca, on='data', how='left')
-    df_final['ipca'] = df_final['ipca'].fillna(method='ffill')
-    df_final['data'] = pd.to_datetime(df_final['data'])
-
-    return df_final
 
 
 def merge_historic_benchmark(df_filtered, df_bench):
