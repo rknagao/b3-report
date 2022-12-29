@@ -13,7 +13,7 @@ import streamlit as st
 ############
 st.header('Reporte Financeiro [B]³ 📈🐕')
 st.write('Olá! Seja bem-vindo ao seu planejador pessoal de investimentos.')
-st.write('Para começar, carregue seus relatórios obtidos na B3. Não se preocupe pois todos os seus dados ficarão seguros em seu computador.')
+st.write('Para começar, carregue seus relatórios obtidos na B3. Não se preocupe, pois nenhum dado é gravado.')
 
 
 if 'import_state' not in st.session_state:
