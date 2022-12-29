@@ -11,9 +11,10 @@ import streamlit as st
 ############
 ## FRONT  ##
 ############
+st.header('Reporte Financeiro [B]³ 📈🐕')
+st.write('Olá! Seja bem-vindo ao seu planejador pessoal de investimentos.')
+st.write('Para começar, carregue seus relatórios obtidos na B3. Não se preocupe pois todos os seus dados ficarão seguros em seu computador.')
 
-st.header('B3 Report 📈🐕')
-st.write('Bem vindo! Este é seu planejador pessoal de investimentos. Para começar, carregue seus dados de movimentação fornecidos pela B3 (caso não tenha certeza de onde extrair os dados, preparamos o passo-a-passo abaixo).')
 
 if 'import_state' not in st.session_state:
     st.session_state['import_state'] = 'empty'
@@ -27,21 +28,30 @@ uploaded_files = st.file_uploader("Carregue o(s) relatório(s)",
                                   on_change=change_import_state)
 
 st.markdown('---')
-with st.expander("Dica: clique aqui para saber como obter os relatórios da B3."):
-    st.markdown("##### Passo-a-passo")
-    st.markdown("Acesse o [site](https://www.investidor.b3.com.br/) da B3 e faça o login na área de investidor.")
+st.subheader('Saiba como exportar relatórios da B3')
+st.write('')
+st.markdown("Passo 1: Faça o login na área do investidor clicando no [site](https://www.investidor.b3.com.br/) da B3.")
+st.image(Image.open('src/fig/pag0.PNG'), caption='')
+st.write('')
+st.markdown("Passo 2: Acesse o Menu no lado esquerdo superior.")
+st.image(Image.open('src/fig/pag1.PNG'), caption='')
+st.write('')
+st.markdown("Passo 3: Selecione Extratos.")
+st.image(Image.open('src/fig/pag2.PNG'), caption='')
+st.write('')
+st.markdown("Passo 4: Clique em Movimentação e depois no botão Filtrar em amarelo .")
+st.image(Image.open('src/fig/pag3.PNG'), caption='')
+st.write('')
+st.markdown("Passo 5: Selecione o intervalo desejado (dica: o filtro aceita no máximo 12 meses. A sugestão é filtrar de 01/jan até 31/dez).")
+st.image(Image.open('src/fig/pag4.PNG'), caption='')
+st.write('')
+st.markdown("Passo 6: Clique em Extrair no formato excel.")
+st.image(Image.open('src/fig/pag5.PNG'), caption='')
+st.write('')
+st.markdown("Passo 7: Certifique-se que os arquivos tenham o formato acima.")
+st.image(Image.open('src/fig/pag6.PNG'), caption='')
 
-    st.image(Image.open('src/fig/pag1.PNG'), caption='Passo 1: após o login, acesse o Menu no lado esquerdo superior.')
-    st.write('')
-    st.image(Image.open('src/fig/pag2.PNG'), caption='Passo 2: acesse os Extratos.')
-    st.write('')
-    st.image(Image.open('src/fig/pag3.PNG'), caption='Passo 3: clique em Movimentação e depois no botão amarelo Filtrar .')
-    st.write('')
-    st.image(Image.open('src/fig/pag4.PNG'), caption='Passo 4: selecione o intervalo desejado (dica: o filtro aceita no máximo 12 meses. A sugestão é filtrar de 01/jan até 31/dez).')
-    st.write('')
-    st.image(Image.open('src/fig/pag5.PNG'), caption='Passo 5: clique em Extrair no formato excel.')
-    st.write('')
-    st.image(Image.open('src/fig/pag6.PNG'), caption='Certifique-se que os arquivos tenham o formato acima.')
+    
 
 def etl(uploaded_files):
     '''
