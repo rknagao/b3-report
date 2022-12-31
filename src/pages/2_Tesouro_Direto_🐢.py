@@ -3,7 +3,8 @@ import datetime
 import dateutil
 import json
 #import local_lib as lib
-from lib.data import tesouro
+from lib.history import tesouro
+from lib.history import benchmark
 from millify import millify
 import numpy as np
 import os
@@ -40,6 +41,7 @@ else:
 
         st.dataframe(df)
 
+        
         """
         df_hist_tesouro = lib.etl_tesouro_historic_price()
         df_tesouro_historico = lib.merge_historic_tesouro(df_hist_tesouro, df_tesouro)
