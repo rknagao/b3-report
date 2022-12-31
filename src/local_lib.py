@@ -50,15 +50,15 @@ def etl_benchmark_historic_price():
 
 @st.cache
 def etl_bolsa_historic_price(list_ticker_b3: list, start_date: str, end_date: str) -> np.array:
-
     # Utilizando a api do yf
-    long_string = ' '.join([i + '.SA' for i in list_ticker_b3])
-    df_price = yf.download(long_string, start=start_date, end=end_date, group_by='column')['Adj Close'].reset_index()
-
-    # Ajustes na base
+    list_ticker_yf = [i + '.SA' for i in list_ticker_b3]
+    long_string = ' '.join(list_ticker_yf)
+    df_price = yf.download(long_string, start=start_date, end=end_date, group_by='column', actions=True, interval='1d')['Close'].reset_index()
+    
+    # Ajustes gerais na base
     df_price.columns = ['data'] + list(list_ticker_b3)    
     df_price['data'] = pd.to_datetime(df_price['data'])
-    df_price = df_price.fillna(0).round(2)
+    df_price = pd.melt(df_price, id_vars=['data'], value_vars=list(list_ticker_b3), var_name='ticker', value_name='preco').round(2)
     
     return df_price
 
@@ -227,3 +227,27 @@ def lineplot_altair(data: pd.DataFrame, title: str, col_date: str, col_value: st
     chart = (lines + points + tooltips).interactive()
     plot = st.altair_chart(chart.interactive(), use_container_width=True)
     return plot
+
+
+def custom_price_adjustment_for_split(df):
+    df = df.sort_values(['ticker', 'data'], ascending=False)
+    for i in df['ticker'].unique():
+        array_event = df.loc[df['ticker'] == i, 'evento']
+
+        # Caso 1: não tem spit.
+        if len(array_event[array_event == 'split']) == 0:
+            df.loc[df['ticker'] == i, 'preco_fix'] = df.loc[df['ticker'] == i, 'preco']
+
+        # Caso 2: tem split(s).
+        else:
+            list_index = array_event[array_event == 'split'].index.tolist()
+            for j in list_index:
+                df.loc[j-1, 'multiplicador_split'] = df.loc[j, 'qt_acum'] / df.loc[j - 1, 'qt_acum']
+        df.loc[df['ticker'] == i, 'multiplicador_split'] = df.loc[df['ticker'] == i, 'multiplicador_split'].fillna(0).cumsum()
+
+    # Corrigindo os preços por splits.
+    df['multiplicador_split'] = df['multiplicador_split'].replace(0, 1)
+    df['preco_fix'] = df['preco'] * df['multiplicador_split']
+    df['vl_atualizado_fix'] = df['preco_fix'] * df['qt_acum']
+    df = df.sort_values(['ticker', 'data'], ascending=True)
+    return df

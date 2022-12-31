@@ -2,7 +2,8 @@ import altair as alt
 import datetime
 import dateutil
 import json
-import local_lib as lib
+#import local_lib as lib
+from lib.data import tesouro
 from millify import millify
 import numpy as np
 import os
@@ -24,8 +25,8 @@ else:
         st.warning('Os relatórios inseridos estão vazios.')
     
     else:
-        df_tesouro = st.session_state['tesouro']
-        df_tesouro['data'] = pd.to_datetime(df_tesouro['data'], format='%Y-%m-%d')
+        df = st.session_state['tesouro']
+        df['data'] = pd.to_datetime(df['data'], format='%Y-%m-%d')
         
 
         ##########################
@@ -37,6 +38,9 @@ else:
         A tabela dinâmica abaixo apresenta o valor acumulado e atualizado até o último dia de cotação do Tesouro Direto.
         ''')
 
+        st.dataframe(df)
+
+        """
         df_hist_tesouro = lib.etl_tesouro_historic_price()
         df_tesouro_historico = lib.merge_historic_tesouro(df_hist_tesouro, df_tesouro)
         df_tesouro_historico = lib.create_column_last_day(df_tesouro_historico)
@@ -133,3 +137,4 @@ else:
 
         with col4:
             st.metric(label="Rendimento", value=f"{rendimento_nominal} %", delta=f"{rendimento_nominal_delta} %")
+        """

@@ -28,37 +28,54 @@ else:
         df_bolsa['data'] = pd.to_datetime(df_bolsa['data'], format='%Y-%m-%d')
         
         #remover
-        st.dataframe(df_bolsa)
+        #st.dataframe(df_bolsa)
 
         df_bolsa_historico = lib.etl_bolsa_historic_price(list_ticker_b3=df_bolsa['ticker'].unique(),
                                                           start_date=df_bolsa['data'].min(),
                                                           end_date=df_bolsa['data'].max())
-        st.dataframe(df_bolsa_historico)
-        """
+        #remover
+        #st.dataframe(df_bolsa_historico)
+        
         ##########################
         # TAB1 - TABELA DINAMICA #
         ##########################
 
         st.markdown('''
         #### Parte 1: Evolução mensal
-        A tabela dinâmica abaixo apresenta o valor acumulado e atualizado até o último dia de cotação do Tesouro Direto.
+        A tabela dinâmica abaixo apresenta o valor acumulado e atualizado até o último dia de cotação da Bolsa.
         ''')
 
-        df_hist_tesouro = lib.etl_tesouro_historic_price()
-        df_tesouro_historico = lib.merge_historic_tesouro(df_hist_tesouro, df_tesouro)
-        df_tesouro_historico = lib.create_column_last_day(df_tesouro_historico)
+        # Passo 1: extrair dados atualizados de cada ticker.
+        df_bolsa_historico = lib.etl_bolsa_historic_price(list_ticker_b3=df_bolsa['ticker'].sort_values().unique(),
+                                                          start_date=df_bolsa['data'].min(),
+                                                          end_date=df_bolsa['data'].max())
         
+        # Passo 2: juntar a carteira com os preços históricos.
+        df_bolsa_merge = pd.merge(df_bolsa_historico, df_bolsa, on=['data', 'ticker'], how='left').fillna(0).sort_values(['ticker', 'data'])
+
         # Filtro de tickers.
         list_ticker = st.multiselect('Escolha o(s) investimento(s):',
-                                    df_tesouro_historico['ticker'].unique().tolist(),
-                                    df_tesouro_historico['ticker'].unique().tolist())
-        df_tesouro_historico = df_tesouro_historico.loc[df_tesouro_historico['ticker'].isin(list_ticker)]
+                                    df_bolsa_merge['ticker'].unique().tolist(),
+                                    df_bolsa_merge['ticker'].unique().tolist())
+        df_bolsa_merge = df_bolsa_merge.loc[df_bolsa_merge['ticker'].isin(list_ticker)]
+
+        # Passo 3: calcular a quantidade acumulada.
+        for i in df_bolsa_merge['ticker'].sort_values().unique():
+            df_bolsa_merge.loc[df_bolsa_merge['ticker'] == i, 'qt_acum'] = df_bolsa_merge.loc[df_bolsa_merge['ticker'] == i, 'qt'].cumsum(skipna=True)
+        df_bolsa_acum = df_bolsa_merge.loc[(df_bolsa_merge['qt'] != 0) | (df_bolsa_merge['qt_acum'] != 0)]
+
+        # Passo 4: corrigir preço histórico por agrupamento/desdobramento de ações.
+        df_bolsa_split = lib.custom_price_adjustment_for_split(df_bolsa_acum)
+
+        # Passo 5: criar uma coluna identificando o último dia do mês de cada ativo (útil para os plots)
+        df_bolsa_split = lib.create_column_last_day(df_bolsa_split)
+
+        # Passo 6: criar tabela dinâmica customizada
+        df_tab1 = df_bolsa_split.loc[df_bolsa_split['dummy_ultimo_dia'] == 1]
+        df_tab1, data_col = lib.custom_pivot_table(df_tab1, col_value='vl_atualizado_fix')
+        st.dataframe(df_tab1.style.format(subset=data_col, formatter="{:.2f}"))
         
-        df_plot = df_tesouro_historico.loc[df_tesouro_historico['dummy_ultimo_dia'] == 1]
-        tab1, data_col = lib.custom_pivot_table(df_plot, col_value='vl_atualizado')
-        st.dataframe(tab1.style.format(subset=data_col, formatter="{:.2f}"))
-
-
+        """
         ##########################################
         # TAB2 - GRÁFICO DE LINHA COM BENCHMARKS #
         ##########################################
