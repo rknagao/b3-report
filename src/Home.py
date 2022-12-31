@@ -62,7 +62,8 @@ def data_treatment(df):
     )
 
     # (bolsa) Ajuste específico de ações: zerar a quantidade de compra/venda em caso de dividendos e juros sobre capital próprio.
-    condition = df['tp_movimento'].isin(['Transferência - Liquidação', 'Bonificação em Ativos', 'Desdobro'])
+    condition = ~df['tp_movimento'].isin(['Transferência - Liquidação', 'Bonificação em Ativos', 'Desdobro']) & \
+                df['tp_ativo'].isin(['Tipo 2: ações', 'Tipo 3: BDR'])
     df['qt_abs'] = np.where(condition, 0, df['qt_abs'])
 
     # (geral) Nova variável: variação na quantidade de ativos.
@@ -141,7 +142,6 @@ def main():
             st.warning('Sem arquivos com layout válido.')
             logging.debug('Layout do arquivo inesperado.')
         else:
-            #st.write(f"")
             st.success(f"Dados carregados.")
             st.session_state['tesouro'] = only_tesouro(df)
             st.session_state['bolsa'] = only_bolsa(df)

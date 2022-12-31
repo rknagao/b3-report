@@ -28,6 +28,9 @@ def ipca():
     df['data'] = pd.to_datetime(df['data'], format='%d/%m/%Y')
     df.columns = ['data','ipca']
     df['ipca'] = round((1 + df['ipca']) ** (1/22) - 1, 6)
+
+    df_data = pd.DataFrame({'data': pd.bdate_range(start=df['data'].min(), end=df['data'].max())})
+    df = pd.merge(df_data, df, on='data', how='left').fillna(method='ffill')
     return df
 
 
@@ -46,12 +49,13 @@ def sp500():
     df['sp500'] = ((df['sp500'] / df['sp500'].shift(1) - 1) * 100).fillna(5).round(6)
     return df        
 
-    """
-    df_final = pd.merge(df_ibov, df_sp500, on='data', how='inner')
-    df_final = pd.merge(df_final, df_cdi, on='data', how='inner')
-    df_final = pd.merge(df_final, df_ipca, on='data', how='left')
-    df_final['ipca'] = df_final['ipca'].fillna(method='ffill')
-    df_final['data'] = pd.to_datetime(df_final['data'])
 
-    return df_final
-    """
+def all_benchmarks(start_date, end_date):
+    df = pd.DataFrame()
+    df['data'] = pd.bdate_range(start_date, end_date)
+    df = pd.merge(df, cdi(), on='data', how='left')
+    df = pd.merge(df, ipca(), on='data', how='left')   
+    df = pd.merge(df, ibovespa(), on='data', how='left')
+    df = pd.merge(df, sp500(), on='data', how='left')
+    df = df.fillna(method='ffill')
+    return df
