@@ -1,4 +1,5 @@
 import logging
+import numpy as np
 import pandas as pd
 import streamlit as st
 import yfinance as yf
@@ -58,4 +59,21 @@ def all_benchmarks(start_date, end_date):
     df = pd.merge(df, ibovespa(), on='data', how='left')
     df = pd.merge(df, sp500(), on='data', how='left')
     df = df.fillna(method='ffill')
+    return df
+
+
+def bolsa(list_ticker_b3: list, start_date: str, end_date: str) -> np.array:
+
+    # Utilizando a api do yf
+    list_ticker_yf = [i + '.SA' for i in list_ticker_b3]
+    long_string = ' '.join(list_ticker_yf)
+    df = yf.download(long_string, start=start_date, end=end_date, group_by='column', actions=True, interval='1d')
+
+    # Obter o preço histórico e os eventos de agrupamento/desdobramento de ações
+    df = df['Close'].reset_index().sort_values('Date', ascending=True).round(2)#.fillna(method='ffill')
+
+    # Ajustes gerais na base
+    df.columns = ['data'] + list(list_ticker_b3)    
+    df['data'] = pd.to_datetime(df['data'])
+    df = pd.melt(df, id_vars=['data'], value_vars=list(list_ticker_b3), var_name='ticker', value_name='preco')
     return df

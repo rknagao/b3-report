@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 
 
-def pivot_table(df, x, y, value):
+def pivot_table(df: pd.DataFrame, x: str, y: str, value: str) -> st.dataframe:
     
     # Ajuste para o formato de data no Streamlit.
     if np.issubdtype(df[x].dtype, np.datetime64):
