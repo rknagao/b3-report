@@ -75,7 +75,7 @@ else:
             df['multiplicador_split'] = df['multiplicador_split'].replace(0, 1)
             df['preco_fix'] = df['preco'] * df['multiplicador_split']
             df['vl_atualizado_fix'] = df['preco_fix'] * df['qt_acum']
-            df = df.sort_values(['ticker', 'data'], ascending=True)
+            df = df.sort_values(['ticker', 'data'], ascending=True).reset_index(drop=True)
             
             # Identificando o último dia de cada mês presente na amostra.
             df['ultimo_dia_mes'] = dummy_last_day_of_month_in_sample(df['data'])
@@ -91,9 +91,9 @@ else:
                                      df_bolsa_treatment['ticker'].unique().tolist(),
                                      df_bolsa_treatment['ticker'].unique().tolist())
 
-        df_tesouro_treatment = df_bolsa_treatment.loc[df_bolsa_treatment['ticker'].isin(list_ticker)]
+        df_bolsa_treatment = df_bolsa_treatment.loc[df_bolsa_treatment['ticker'].isin(list_ticker)]
 
-        pivot_table(df=df_tesouro_treatment.loc[df_tesouro_treatment['ultimo_dia_mes'] == 1],
+        pivot_table(df=df_bolsa_treatment.loc[df_bolsa_treatment['ultimo_dia_mes'] == 1],
                     x='data', y='ticker', value='vl_atualizado_fix')
         
         st.markdown('-----')
@@ -109,8 +109,8 @@ else:
         O gráfico abaixo apresenta a evolução da carteira como um todo, em referência aos benchmarks mais comuns do mercado.
         ''')
 
-        df_benchmarks = all_benchmarks(start_date=df_tesouro_treatment['data'].min(),
-                                       end_date=df_tesouro_treatment['data'].max())
+        df_benchmarks = all_benchmarks(start_date=df_bolsa_treatment['data'].min(),
+                                       end_date=df_bolsa_treatment['data'].max())
 
         
          # -----------------------------------------------------------------------
