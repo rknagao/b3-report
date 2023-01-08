@@ -114,11 +114,11 @@ else:
 
         
          # -----------------------------------------------------------------------
-        def benchmark_treatment(df_tesouro_treatment, df_benchmarks):
+        def benchmark_treatment(df_bolsa_treatment, df_benchmarks):
 
             list_bench = df_benchmarks.columns[1:].tolist()
-            df_agg = df_tesouro_treatment.groupby(['data']).agg({'vl_total':'sum', 'vl_atualizado':'sum'}).reset_index(drop=False)
-            df_agg.rename(columns={'vl_atualizado':'carteira'}, inplace=True)
+            df_agg = df_bolsa_treatment.groupby(['data']).agg({'vl_total':'sum', 'vl_atualizado_fix':'sum'}).reset_index(drop=False)
+            df_agg.rename(columns={'vl_atualizado_fix':'carteira'}, inplace=True)
             df_agg['data'] = pd.to_datetime(df_agg['data'])
             df = pd.merge(df_agg, df_benchmarks, on='data', how='left')
 
@@ -131,8 +131,8 @@ else:
             return df
          # -----------------------------------------------------------------------
 
-        df_benchmark_treatment = benchmark_treatment(df_tesouro_treatment, df_benchmarks)
-        df_benchmark_treatment.to_csv('aa.csv', index=False)
+        df_benchmark_treatment = benchmark_treatment(df_bolsa_treatment, df_benchmarks)
+        df_benchmark_treatment.to_csv('to_de_debugged.csv', index=False)
         lineplot(df=df_benchmark_treatment, x='data', y='value', label='variable', title='Simulação de carteira vs benchmarks')
 
         
